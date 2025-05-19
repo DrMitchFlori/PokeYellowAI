@@ -11,6 +11,10 @@ def make_mem(map_id: int = 0, badge_flags: int = 0, size: int = 0xE000) -> bytea
 
 
 class TestPokeRewards(unittest.TestCase):
+    def test_map_id_address_constant(self):
+        """Ensure MAP_ID_ADDR matches the documented location."""
+        self.assertEqual(MAP_ID_ADDR, 0xD35D)
+
     def test_map_transition_triggers_goal(self):
         prev = make_mem(map_id=0)
         curr = make_mem(map_id=1)
