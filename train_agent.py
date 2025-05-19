@@ -56,6 +56,11 @@ def main() -> None:
         default=None,
         help="Random seed for reproducibility",
     )
+    parser.add_argument(
+        "--log-path",
+        default=None,
+        help="Optional path to log map IDs during training",
+    )
     args = parser.parse_args()
 
     retro.data.Integrations.add_custom_path(args.retro_dir)
@@ -94,8 +99,14 @@ def main() -> None:
     lam = ppo_cfg.get("lam", 0.95)
 
     steps = 0
+    global_step = 0
+    log_f = open(args.log_path, "w") if args.log_path else None
     while steps < args.total_steps:
         rollout = gather_rollout(env, model, curriculum, args.rollout_steps)
+        if log_f:
+            for mid in rollout.get("map_ids", []):
+                log_f.write(f"{global_step}\t{mid}\n")
+                global_step += 1
         steps += len(rollout["rewards"])
         ppo_update(
             model,
@@ -116,6 +127,8 @@ def main() -> None:
         )
 
     env.close()
+    if log_f:
+        log_f.close()
     torch.save(model.state_dict(), args.output_model)
 
 

@@ -32,7 +32,7 @@ except ModuleNotFoundError:  # pragma: no cover - modules may be missing during 
     F = None
     optim = None
 
-from poke_rewards import check_goals
+from poke_rewards import check_goals, _map_changed
 
 
 def load_config(path: str) -> Dict[str, Any]:
@@ -201,7 +201,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
     -------
     Dict[str, List]
         Rollout storage containing states, actions, log probabilities, values,
-        rewards and done flags.
+        rewards, done flags and map IDs.
     """
     if np is None or torch is None:
         raise ImportError("NumPy and PyTorch are required for gather_rollout")
@@ -215,6 +215,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
         next_obs, reward, done, _info = env.step(action)
         curr_mem = env.get_ram()
         triggered = check_goals(prev_mem, curr_mem, curriculum.active_goals())
+        _changed, curr_map = _map_changed(prev_mem, curr_mem)
         shaped = reward + sum(r for _g, r in triggered)
         episode_goals.update(g for g, _r in triggered)
 
@@ -225,6 +226,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
         storage["values"].append(value)
         storage["rewards"].append(shaped)
         storage["dones"].append(done)
+        storage["map_ids"].append(curr_map)
 
         if done:
             obs = env.reset()
