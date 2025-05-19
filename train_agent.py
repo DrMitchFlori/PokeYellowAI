@@ -100,6 +100,8 @@ class ActorCritic(nn.Module):
         return self.policy(features), self.value(features)
 
     def act(self, x: np.ndarray) -> Tuple[int, float, float]:
+        """Return action, log probability and value for a single observation."""
+        x = x.transpose(2, 0, 1)
         with torch.no_grad():
             logits, value = self.forward(torch.from_numpy(x).float().unsqueeze(0))
             dist = torch.distributions.Categorical(logits=logits)
@@ -143,7 +145,8 @@ def gather_rollout(env: retro.RetroEnv, model: ActorCritic, curriculum: Curricul
         shaped = reward + sum(r for _g, r in triggered)
         episode_goals.update(g for g, _r in triggered)
 
-        storage["states"].append(torch.from_numpy(obs).float())
+        obs_t = obs.transpose(2, 0, 1)
+        storage["states"].append(torch.from_numpy(obs_t).float())
         storage["actions"].append(action)
         storage["log_probs"].append(log_p)
         storage["values"].append(value)
@@ -206,7 +209,8 @@ def main() -> None:
     args = parser.parse_args()
 
     env = retro.make(game=args.rom)
-    obs_shape = env.observation_space.shape
+    obs_space_shape = env.observation_space.shape
+    obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
     n_actions = env.action_space.n
 
     with open(args.goals, "r", encoding="utf-8") as f:
