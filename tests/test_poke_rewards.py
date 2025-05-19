@@ -23,7 +23,7 @@ class TestPokeRewards(unittest.TestCase):
             {"id": "reach_viridian_city", "type": "map", "target_id": 1, "reward": 1.0}
         ]
 
-        triggered = check_goals(prev, curr, goals, {}, {})
+        triggered = check_goals(prev, curr, goals)
         self.assertEqual(triggered, [("reach_viridian_city", 1.0)])
 
     def test_event_flag_triggers_goal(self):
@@ -34,7 +34,7 @@ class TestPokeRewards(unittest.TestCase):
             {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0}
         ]
 
-        triggered = check_goals(prev, curr, goals, {}, {})
+        triggered = check_goals(prev, curr, goals)
         self.assertEqual(triggered, [("defeat_brock", 5.0)])
 
     def test_no_trigger_when_values_unchanged(self):
@@ -46,7 +46,7 @@ class TestPokeRewards(unittest.TestCase):
             {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0},
         ]
 
-        triggered = check_goals(prev, curr, goals, {}, {})
+        triggered = check_goals(prev, curr, goals)
         self.assertEqual(triggered, [])
 
     def test_multiple_goals_same_frame(self):
@@ -58,7 +58,7 @@ class TestPokeRewards(unittest.TestCase):
             {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0},
         ]
 
-        triggered = check_goals(prev, curr, goals, {}, {})
+        triggered = check_goals(prev, curr, goals)
         self.assertEqual(sorted(triggered), [
             ("defeat_brock", 5.0),
             ("reach_viridian_city", 1.0),

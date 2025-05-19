@@ -7,9 +7,8 @@ PokeYellowAI aims to train reinforcement learning agents to play **Pokémon Yell
 - Python 3.8 or newer
 - [gym-retro](https://github.com/openai/retro)
 - [PyTorch](https://pytorch.org/)
-- A legally obtained copy of *Pokémon Yellow* (`PokemonYellow.gbc`)
-
-The bundled ROM is provided only for research convenience.  Ensure you own an original copy of the game before using it.
+- A legally obtained copy of *Pokémon Yellow* placed outside this repository
+This repository does not include the game ROM.
 
 ## Extracting Static Data
 
@@ -19,7 +18,14 @@ Some parts of the reward system rely on lookup tables for map IDs, item IDs and 
 python scripts/extract_static_data.py
 ```
 
-The script expects `maps.asm`, `items.asm` and `ram_map.html` from the community disassembly project to be placed in the repository root.  It will create the following files under `data/`:
+The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the community disassembly project to be placed in the repository root.  `ram_map.txt` should contain lines like:
+
+```
+$D747 Event Flag 0: Started the game
+$D748 Event Flag 1: Received Pokédex
+```
+
+Each line begins with the flag's address followed by its description.  Running the script will create the following files under `data/`:
 
 - `data/map_ids.json`
 - `data/item_ids.json`
@@ -40,18 +46,36 @@ Rewards are produced by comparing consecutive WRAM snapshots.  Goals can trigger
 
 `poke_rewards.check_goals` takes two memory snapshots and returns the goals that were achieved in that frame.
 
+Additional goal predicates are now available for item pickups and scripted events,
+enabling more fine-grained progress tracking. A cumulative rewarder component
+aggregates rewards over an episode so long-term goals still provide shaping
+signals even when completed late in the run.
+
 ## Training
 
-Training uses a small PPO implementation found in `train_agent.py` and
-hyperparameters loaded from a JSON or YAML configuration file.
+Training uses a small PPO implementation found in `train_agent.py`. The
+environment is wrapped by `RomEnv` from `src/env_interface`, which exposes a
+`retro`-compatible API while handling ROM resets and memory snapshots.
 
-First register the ROM with Gym Retro using the `retro.import` utility:
+Place your ROM in a directory outside this repository and register it with Gym
+Retro:
 
 ```bash
-python -m retro.import PokemonYellow.gbc --output integrations
+python -m retro.import /path/to/PokemonYellow.gbc --output integrations
 ```
 
 This creates `integrations/PokemonYellow-GB` containing the ROM and metadata.
+To instantiate the environment programmatically:
+
+```python
+from src.env_interface import RomEnv
+import retro
+
+retro.data.Integrations.add_custom_path("integrations")
+base_env = retro.make(game="PokemonYellow-GB")
+env = RomEnv(base_env)
+```
+
 You can then start training with:
 
 ```bash
