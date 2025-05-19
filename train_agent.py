@@ -12,13 +12,22 @@ from collections import defaultdict
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 import numpy as np
-import retro
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from poke_rewards import check_goals
+
+
+try:
+    from env_interface.rom_env import RomEnv  # type: ignore
+    from reward.predicates import predicate_from_goal, Predicate
+    from reward.rewarder import Rewarder
+except ModuleNotFoundError:
+    RomEnv = None  # type: ignore
+    predicate_from_goal = None  # type: ignore
+    Predicate = None  # type: ignore
+    Rewarder = None  # type: ignore
 
 
 Goal = Dict[str, object]
@@ -131,19 +140,33 @@ def compute_gae(rewards: List[float], values: List[float], dones: List[bool], ga
     return advantages_t, returns_t
 
 
-def gather_rollout(env: retro.RetroEnv, model: ActorCritic, curriculum: Curriculum, rollout_steps: int) -> Dict[str, List]:
+def gather_rollout(
+    env,  # gym-like env exposing reset, step and get_ram
+    model: ActorCritic,
+    curriculum: Curriculum,
+    rollout_steps: int,
+    predicate_map: Dict[str, "Predicate"] | None = None,
+) -> Dict[str, List]:
+    """Collect a rollout of experience using the current policy."""
     obs = env.reset()
     prev_mem = env.get_ram()
     storage = defaultdict(list)
     episode_goals: set[str] = set()
+    rewarder = Rewarder(
+        predicate_map[g["id"]] for g in curriculum.active_goals()
+    ) if predicate_map else None
 
     for _ in range(rollout_steps):
         action, log_p, value = model.act(obs)
         next_obs, reward, done, _info = env.step(action)
         curr_mem = env.get_ram()
-        triggered = check_goals(prev_mem, curr_mem, curriculum.active_goals(), {}, {})
-        shaped = reward + sum(r for _g, r in triggered)
-        episode_goals.update(g for g, _r in triggered)
+        if rewarder is not None:
+            shaped_add, triggered_list = rewarder.compute(prev_mem, curr_mem)
+        else:
+            triggered_list = []
+            shaped_add = 0.0
+        shaped = reward + shaped_add
+        episode_goals.update(triggered_list)
 
         obs_t = obs.transpose(2, 0, 1)
         storage["states"].append(torch.from_numpy(obs_t).float())
@@ -158,6 +181,10 @@ def gather_rollout(env: retro.RetroEnv, model: ActorCritic, curriculum: Curricul
             prev_mem = env.get_ram()
             curriculum.record_episode(episode_goals)
             episode_goals = set()
+            if predicate_map:
+                rewarder = Rewarder(
+                    predicate_map[g["id"]] for g in curriculum.active_goals()
+                )
         else:
             obs = next_obs
             prev_mem = curr_mem
@@ -212,8 +239,10 @@ def main() -> None:
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
     args = parser.parse_args()
 
-    retro.data.Integrations.add_custom_path(args.retro_dir)
-    env = retro.make(game="PokemonYellow-GB")
+    if RomEnv is None:
+        raise RuntimeError("RomEnv unavailable; required dependencies missing")
+
+    env = RomEnv(game="PokemonYellow-GB", retro_dir=args.retro_dir)
     obs_space_shape = env.observation_space.shape
     obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
     n_actions = env.action_space.n
@@ -221,13 +250,18 @@ def main() -> None:
     with open(args.goals, "r", encoding="utf-8") as f:
         goal_data = json.load(f)
     curriculum = Curriculum(goal_data)
+    predicate_map = (
+        {g["id"]: predicate_from_goal(g) for g in goal_data}
+        if predicate_from_goal is not None
+        else {}
+    )
 
     model = ActorCritic(obs_shape, n_actions)
     optimizer = optim.Adam(model.parameters(), lr=2.5e-4)
 
     steps = 0
     while steps < args.total_steps:
-        rollout = gather_rollout(env, model, curriculum, args.rollout_steps)
+        rollout = gather_rollout(env, model, curriculum, args.rollout_steps, predicate_map)
         steps += len(rollout["rewards"])
         ppo_update(model, optimizer, rollout)
         print(f"Steps: {steps} | Active goals: {len(curriculum.active_goals())}")
