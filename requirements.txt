@@ -1,5 +1,5 @@
-gym-retro
-numpy
-pyyaml
-torch
-matplotlib
+gym-retro==0.8.0
+numpy==1.26.4
+pyyaml==6.0.1
+torch==2.2.2
+matplotlib==3.8.4

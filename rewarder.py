@@ -49,7 +49,13 @@ class Rewarder:
         self, prev_mem: bytes, curr_mem: bytes, env_reward: float = 0.0
     ) -> Tuple[float, List[str]]:
         """Return total reward and IDs of triggered goals."""
-        triggered_pairs = check_goals(prev_mem, curr_mem, self._goals)
-        total = env_reward + sum(rew for _, rew in triggered_pairs)
-        triggered_ids = [gid for gid, _ in triggered_pairs]
+
+        total = env_reward
+        triggered_ids: List[str] = []
+
+        for goal_id, predicate, reward in self._entries:
+            if predicate(prev_mem, curr_mem):
+                total += reward
+                triggered_ids.append(goal_id)
+
         return total, triggered_ids
