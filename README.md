@@ -7,8 +7,7 @@ PokeYellowAI aims to train reinforcement learning agents to play **Pokémon Yell
 - Python 3.8 or newer
 - A legally obtained copy of *Pokémon Yellow* placed outside this repository
   (this repository does **not** include the game ROM)
-- Python dependencies listed in `requirements.txt` (Gym Retro, PyTorch, NumPy,
-  PyYAML, etc.)
+- Python dependencies listed in `requirements.txt` (Gym Retro, NumPy, PyYAML, PyTorch)
 
 Install the Python packages with:
 
