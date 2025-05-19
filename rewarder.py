@@ -50,6 +50,7 @@ class Rewarder:
         self, prev_mem: bytes, curr_mem: bytes, env_reward: float = 0.0
     ) -> Tuple[float, List[str]]:
         """Return total reward and IDs of triggered goals."""
+
         total = env_reward
         triggered_ids: List[str] = []
 
