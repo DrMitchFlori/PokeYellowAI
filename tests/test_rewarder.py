@@ -1,6 +1,6 @@
 import unittest
 
-from rewarder import Rewarder
+from rewarder import Rewarder, predicate_from_goal
 from poke_rewards import MAP_ID_ADDR, BADGE_FLAGS_ADDR
 
 
