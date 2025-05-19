@@ -12,6 +12,11 @@ import json
 import retro
 import torch
 import torch.optim as optim
+from collections import defaultdict
+from typing import Dict, List, Tuple
+import numpy as np
+from poke_rewards import check_goals
+import torch.nn.functional as F
 
 from ppo import (
     ActorCritic,
@@ -20,111 +25,6 @@ from ppo import (
     load_config,
     ppo_update,
 )
-=======
-    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = x / 255.0
-        features = self.features(x)
-        return self.policy(features), self.value(features)
-
-    def act(self, x: np.ndarray) -> Tuple[int, float, float]:
-        """Return action, log probability and value for a single observation."""
-        x = x.transpose(2, 0, 1)
-        with torch.no_grad():
-            logits, value = self.forward(torch.from_numpy(x).float().unsqueeze(0))
-            dist = torch.distributions.Categorical(logits=logits)
-            action = dist.sample()
-            log_prob = dist.log_prob(action)
-        return action.item(), log_prob.item(), value.item()
-
-    def evaluate(self, states: torch.Tensor, actions: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        logits, values = self.forward(states)
-        dist = torch.distributions.Categorical(logits=logits)
-        log_probs = dist.log_prob(actions)
-        entropy = dist.entropy()
-        return log_probs, entropy, values.squeeze(-1)
-
-
-def compute_gae(rewards: List[float], values: List[float], dones: List[bool], gamma: float = 0.99, lam: float = 0.95) -> Tuple[torch.Tensor, torch.Tensor]:
-    adv = 0.0
-    advantages: List[float] = []
-    last_value = 0.0
-    for r, v, d in zip(reversed(rewards), reversed(values), reversed(dones)):
-        delta = r + gamma * last_value * (1.0 - d) - v
-        adv = delta + gamma * lam * (1.0 - d) * adv
-        advantages.insert(0, adv)
-        last_value = v
-    advantages_t = torch.tensor(advantages, dtype=torch.float32)
-    returns_t = advantages_t + torch.tensor(values, dtype=torch.float32)
-    return advantages_t, returns_t
-
-
-def gather_rollout(env: retro.RetroEnv, model: ActorCritic, curriculum: Curriculum, rollout_steps: int) -> Dict[str, List]:
-    obs = env.reset()
-    prev_mem = env.get_ram()
-    storage = defaultdict(list)
-    episode_goals: set[str] = set()
-
-    for _ in range(rollout_steps):
-        action, log_p, value = model.act(obs)
-        next_obs, reward, done, _info = env.step(action)
-        curr_mem = env.get_ram()
-        triggered = check_goals(prev_mem, curr_mem, curriculum.active_goals())
-        shaped = reward + sum(r for _g, r in triggered)
-        episode_goals.update(g for g, _r in triggered)
-
-        obs_t = obs.transpose(2, 0, 1)
-        storage["states"].append(torch.from_numpy(obs_t).float())
-        storage["actions"].append(action)
-        storage["log_probs"].append(log_p)
-        storage["values"].append(value)
-        storage["rewards"].append(shaped)
-        storage["dones"].append(done)
-
-        if done:
-            obs = env.reset()
-            prev_mem = env.get_ram()
-            curriculum.record_episode(episode_goals)
-            episode_goals = set()
-        else:
-            obs = next_obs
-            prev_mem = curr_mem
-
-    return storage
-
-
-def ppo_update(model: ActorCritic, optimizer: optim.Optimizer, rollout: Dict[str, List], clip_range: float = 0.2, epochs: int = 4, batch_size: int = 64, vf_coef: float = 0.5, ent_coef: float = 0.01) -> None:
-    states = torch.stack(rollout["states"])
-    actions = torch.tensor(rollout["actions"])
-    old_log_probs = torch.tensor(rollout["log_probs"])
-    values = rollout["values"]
-    rewards = rollout["rewards"]
-    dones = rollout["dones"]
-
-    advantages, returns = compute_gae(rewards, values, dones)
-    advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
-
-    dataset_size = states.size(0)
-    for _ in range(epochs):
-        indices = torch.randperm(dataset_size)
-        for start in range(0, dataset_size, batch_size):
-            idx = indices[start : start + batch_size]
-            batch_states = states[idx]
-            batch_actions = actions[idx]
-            batch_old_log = old_log_probs[idx]
-            batch_adv = advantages[idx]
-            batch_ret = returns[idx]
-
-            log_probs, entropy, values_pred = model.evaluate(batch_states, batch_actions)
-            ratio = torch.exp(log_probs - batch_old_log)
-            obj = ratio * batch_adv
-            clipped_obj = torch.clamp(ratio, 1.0 - clip_range, 1.0 + clip_range) * batch_adv
-            policy_loss = -torch.min(obj, clipped_obj).mean()
-            value_loss = F.mse_loss(values_pred, batch_ret)
-            loss = policy_loss + vf_coef * value_loss - ent_coef * entropy.mean()
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
 
 
 
