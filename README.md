@@ -95,3 +95,14 @@ different hyperparameter file using `--config`. During training, goals are
 unlocked gradually according to their prerequisites, forming a simple
 curriculum.
 
+
+## Running Tests
+
+The unit tests are written with Python's built-in `unittest` framework. You can run the full suite with:
+
+```bash
+python -m unittest discover tests
+```
+
+Heavy dependencies such as PyTorch and NumPy are optional. Tests that rely on them are skipped when the packages are not installed, and lightweight stubs are provided for convenience.
+
