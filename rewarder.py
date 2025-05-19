@@ -5,11 +5,9 @@ from typing import Iterable, List, Tuple, Callable
 from types_shared import GoalDict
 
 from poke_rewards import (
-    check_goals,
     _map_changed,
     _badge_bit_set,
     _event_flag_set,
-    check_goals,
 )
 
 
@@ -43,6 +41,11 @@ class Rewarder:
 
     def __init__(self, goals: Iterable[GoalDict]):
         self._goals = list(goals)
+        self._entries: List[Tuple[str, Predicate, float]] = []
+        for goal in self._goals:
+            predicate = predicate_from_goal(goal)
+            reward = float(goal.get("reward", 1.0))
+            self._entries.append((goal["id"], predicate, reward))
 
     def compute(
         self, prev_mem: bytes, curr_mem: bytes, env_reward: float = 0.0
