@@ -39,6 +39,11 @@ def main() -> None:
     )
     parser.add_argument("--total-steps", type=int, default=100000, help="Total environment steps to train")
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
+    parser.add_argument(
+        "--output-model",
+        default="ppo_pokemon_yellow.pt",
+        help="Path to save the trained model",
+    )
     args = parser.parse_args()
 
     retro.data.Integrations.add_custom_path(args.retro_dir)
@@ -84,7 +89,7 @@ def main() -> None:
         print(f"Steps: {steps} | Active goals: {len(curriculum.active_goals())}")
 
     env.close()
-    torch.save(model.state_dict(), "ppo_pokemon_yellow.pt")
+    torch.save(model.state_dict(), args.output_model)
 
 
 if __name__ == "__main__":
