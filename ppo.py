@@ -12,7 +12,7 @@ import json
 from collections import defaultdict
 from typing import Any, Dict, Iterable, List, Sequence, Tuple, Set, Union
 
-from types_shared import Goal
+from types_shared import GoalDict
 
 try:
     import yaml  # type: ignore
@@ -48,7 +48,7 @@ def load_config(path: str) -> Dict[str, Any]:
 class Curriculum:
     """Manage goal progression during training."""
 
-    def __init__(self, goals: Sequence[Goal], threshold: float = 0.8) -> None:
+    def __init__(self, goals: Sequence[GoalDict], threshold: float = 0.8) -> None:
         self.goals = {g["id"]: g for g in goals}
         self.threshold = threshold
         self.stats: Dict[str, Dict[str, int]] = {
@@ -56,7 +56,7 @@ class Curriculum:
         }
         self.active: Set[str] = {g["id"] for g in goals if not g.get("prerequisites")}
 
-    def active_goals(self) -> List[Goal]:
+    def active_goals(self) -> List[GoalDict]:
         return [self.goals[g] for g in self.active]
 
     def record_episode(self, triggered: Iterable[str]) -> None:

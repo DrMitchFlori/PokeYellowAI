@@ -2,7 +2,7 @@
 
 from typing import Iterable, List, Tuple
 
-from types_shared import Goal
+from types_shared import GoalDict
 
 # Memory addresses based on community documentation
 # Address of the current map ID within WRAM
@@ -67,7 +67,7 @@ def _event_flag_set(prev: bytes, curr: bytes, flag_index: int) -> bool:
 def check_goals(
     prev_mem: bytes,
     curr_mem: bytes,
-    goals: Iterable[Goal],
+    goals: Iterable[GoalDict],
 ) -> List[Tuple[str, float]]:
     """Check memory snapshots for goal completion.
 
@@ -76,9 +76,9 @@ def check_goals(
     prev_mem, curr_mem
         Consecutive WRAM snapshots as ``bytes`` or ``bytearray`` objects.
     goals
-        Iterable of goal dictionaries.  Each goal must contain ``id`` (str),
-        ``type`` (``"map"`` or ``"event"``), and ``target_id`` (int).  Goals may
-        optionally include ``reward`` (float).
+        Iterable of goal dictionaries. Each goal must contain ``id`` (str),
+        ``type`` (``"map"`` or ``"event"``), ``target_id`` (int), ``reward``
+        (float) and ``prerequisites`` (list of str).
 
     Returns
     -------
