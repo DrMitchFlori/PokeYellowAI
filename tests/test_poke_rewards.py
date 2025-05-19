@@ -57,6 +57,22 @@ class TestPokeRewards(unittest.TestCase):
         triggered = check_goals(prev, curr, goals)
         self.assertEqual(triggered, [("defeat_brock", 5.0)])
 
+    def test_default_reward_and_prerequisites(self):
+        """Goals without optional fields should use default values."""
+        prev = make_mem(map_id=0)
+        curr = make_mem(map_id=1)
+
+        goals = [
+            {
+                "id": "reach_viridian_city",
+                "type": "map",
+                "target_id": 1,
+            }
+        ]
+
+        triggered = check_goals(prev, curr, goals)
+        self.assertEqual(triggered, [("reach_viridian_city", 1.0)])
+
     def test_no_trigger_when_values_unchanged(self):
         prev = make_mem(map_id=1, badge_flags=0b00000001)
         curr = make_mem(map_id=1, badge_flags=0b00000001)
