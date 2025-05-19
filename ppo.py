@@ -148,6 +148,26 @@ def compute_gae(
     gamma: float = 0.99,
     lam: float = 0.95,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    """Return generalized advantage estimates and discounted returns.
+
+    Parameters
+    ----------
+    rewards
+        Sequence of observed rewards.
+    values
+        Value predictions from the critic.
+    dones
+        Episode termination flags for each step.
+    gamma
+        Discount factor applied to future rewards.
+    lam
+        Smoothing parameter for GAE.
+
+    Returns
+    -------
+    Tuple[torch.Tensor, torch.Tensor]
+        Advantage estimates and corresponding returns.
+    """
     if torch is None:
         raise ImportError("PyTorch is required for compute_gae")
     adv = 0.0
@@ -164,6 +184,25 @@ def compute_gae(
 
 
 def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout_steps: int) -> Dict[str, List]:
+    """Collect a batch of environment transitions for PPO training.
+
+    Parameters
+    ----------
+    env
+        Environment providing ``reset()``, ``step()`` and ``get_ram()`` methods.
+    model
+        Actor-critic network used to select actions.
+    curriculum
+        Curriculum object tracking active goals.
+    rollout_steps
+        Number of environment steps to gather.
+
+    Returns
+    -------
+    Dict[str, List]
+        Rollout storage containing states, actions, log probabilities, values,
+        rewards and done flags.
+    """
     if np is None or torch is None:
         raise ImportError("NumPy and PyTorch are required for gather_rollout")
     obs = env.reset()
