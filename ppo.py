@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Sequence, Tuple, Set
 
 try:
     import yaml  # type: ignore
@@ -54,7 +54,7 @@ class Curriculum:
         self.stats: Dict[str, Dict[str, int]] = {
             g["id"]: {"successes": 0, "attempts": 0} for g in goals
         }
-        self.active: set[str] = {g["id"] for g in goals if not g.get("prerequisites")}
+        self.active: Set[str] = {g["id"] for g in goals if not g.get("prerequisites")}
 
     def active_goals(self) -> List[Goal]:
         return [self.goals[g] for g in self.active]
@@ -208,7 +208,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
     obs = env.reset()
     prev_mem = env.get_ram()
     storage = defaultdict(list)
-    episode_goals: set[str] = set()
+    episode_goals: Set[str] = set()
 
     for _ in range(rollout_steps):
         action, log_p, value = model.act(obs)
