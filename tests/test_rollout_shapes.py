@@ -3,7 +3,7 @@ import unittest
 try:
     import numpy as np
     import torch
-    from train_agent import ActorCritic, gather_rollout, Curriculum
+    from ppo import ActorCritic, gather_rollout, Curriculum
 except ModuleNotFoundError:  # PyTorch or numpy missing
     np = None
     torch = None

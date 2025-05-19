@@ -8,92 +8,19 @@ unlocked gradually using a simple curriculum strategy.
 
 import argparse
 import json
-from collections import defaultdict
-from typing import Dict, Iterable, List, Sequence, Tuple
 
-import numpy as np
 import retro
 import torch
-import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 
-from poke_rewards import check_goals
-
-
-Goal = Dict[str, object]
-
-
-class Curriculum:
-    """Manage goal progression during training."""
-
-    def __init__(self, goals: Sequence[Goal], threshold: float = 0.8) -> None:
-        self.goals = {g["id"]: g for g in goals}
-        self.threshold = threshold
-        self.stats: Dict[str, Dict[str, int]] = {
-            g["id"]: {"successes": 0, "attempts": 0}
-            for g in goals
-        }
-        # Start with goals that have no prerequisites
-        self.active: set[str] = {
-            g["id"] for g in goals if not g.get("prerequisites")
-        }
-
-    def active_goals(self) -> List[Goal]:
-        return [self.goals[g] for g in self.active]
-
-    def record_episode(self, triggered: Iterable[str]) -> None:
-        triggered_set = set(triggered)
-        for gid in list(self.active):
-            self.stats[gid]["attempts"] += 1
-            if gid in triggered_set:
-                self.stats[gid]["successes"] += 1
-        self._update_unlocks()
-
-    def _update_unlocks(self) -> None:
-        for gid, goal in self.goals.items():
-            if gid in self.active:
-                continue
-            prereqs = goal.get("prerequisites", [])
-            if not prereqs:
-                continue
-            if all(
-                self.stats[p]["attempts"] > 0
-                and self.stats[p]["successes"] / self.stats[p]["attempts"]
-                >= self.threshold
-                for p in prereqs
-            ):
-                self.active.add(gid)
-
-
-class ActorCritic(nn.Module):
-    """Simple convolutional actor-critic network."""
-
-    def __init__(self, obs_shape: Sequence[int], n_actions: int) -> None:
-        super().__init__()
-        c, h, w = obs_shape
-        self.features = nn.Sequential(
-            nn.Conv2d(c, 32, kernel_size=8, stride=4),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
-            nn.ReLU(),
-            nn.Flatten(),
-        )
-        with torch.no_grad():
-            n_flatten = self.features(torch.zeros(1, *obs_shape)).shape[1]
-        self.policy = nn.Sequential(
-            nn.Linear(n_flatten, 512),
-            nn.ReLU(),
-            nn.Linear(512, n_actions),
-        )
-        self.value = nn.Sequential(
-            nn.Linear(n_flatten, 512),
-            nn.ReLU(),
-            nn.Linear(512, 1),
-        )
-
+from ppo import (
+    ActorCritic,
+    Curriculum,
+    gather_rollout,
+    load_config,
+    ppo_update,
+)
+=======
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         x = x / 255.0
         features = self.features(x)
@@ -200,6 +127,7 @@ def ppo_update(model: ActorCritic, optimizer: optim.Optimizer, rollout: Dict[str
             optimizer.step()
 
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train a PPO agent on Pokémon Yellow")
     parser.add_argument(
@@ -208,6 +136,11 @@ def main() -> None:
         help="Path to a Gym Retro integration directory containing Pokemon Yellow",
     )
     parser.add_argument("--goals", default="data/first_three_gyms.json", help="JSON file describing goal curriculum")
+    parser.add_argument(
+        "--config",
+        default="configs/default.json",
+        help="YAML or JSON file specifying hyperparameters",
+    )
     parser.add_argument("--total-steps", type=int, default=100000, help="Total environment steps to train")
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
     args = parser.parse_args()
@@ -218,18 +151,40 @@ def main() -> None:
     obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
     n_actions = env.action_space.n
 
+    config = load_config(args.config)
+
     with open(args.goals, "r", encoding="utf-8") as f:
         goal_data = json.load(f)
-    curriculum = Curriculum(goal_data)
+    curriculum = Curriculum(goal_data, threshold=config.get("curriculum", {}).get("threshold", 0.8))
 
     model = ActorCritic(obs_shape, n_actions)
-    optimizer = optim.Adam(model.parameters(), lr=2.5e-4)
+    ppo_cfg = config.get("ppo", {})
+    optimizer = optim.Adam(model.parameters(), lr=ppo_cfg.get("learning_rate", 2.5e-4))
+
+    clip_range = ppo_cfg.get("clip_range", 0.2)
+    epochs = ppo_cfg.get("epochs", 4)
+    batch_size = ppo_cfg.get("batch_size", 64)
+    vf_coef = ppo_cfg.get("vf_coef", 0.5)
+    ent_coef = ppo_cfg.get("ent_coef", 0.01)
+    gamma = ppo_cfg.get("gamma", 0.99)
+    lam = ppo_cfg.get("lam", 0.95)
 
     steps = 0
     while steps < args.total_steps:
         rollout = gather_rollout(env, model, curriculum, args.rollout_steps)
         steps += len(rollout["rewards"])
-        ppo_update(model, optimizer, rollout)
+        ppo_update(
+            model,
+            optimizer,
+            rollout,
+            clip_range=clip_range,
+            epochs=epochs,
+            batch_size=batch_size,
+            vf_coef=vf_coef,
+            ent_coef=ent_coef,
+            gamma=gamma,
+            lam=lam,
+        )
         print(f"Steps: {steps} | Active goals: {len(curriculum.active_goals())}")
 
     env.close()
@@ -238,3 +193,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
