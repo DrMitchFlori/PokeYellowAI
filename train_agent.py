@@ -12,11 +12,7 @@ import json
 import retro
 import torch
 import torch.optim as optim
-from collections import defaultdict
-from typing import Dict, List, Tuple
 import numpy as np
-from poke_rewards import check_goals
-import torch.nn.functional as F
 
 from ppo import (
     ActorCritic,
