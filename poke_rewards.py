@@ -37,8 +37,6 @@ def check_goals(
     prev_mem: bytes,
     curr_mem: bytes,
     goals: Iterable[Goal],
-    map_ids: Dict[str, int],
-    flags: Dict[str, int],
 ) -> List[Tuple[str, float]]:
     """Check memory snapshots for goal completion.
 
@@ -50,13 +48,6 @@ def check_goals(
         Iterable of goal dictionaries.  Each goal must contain ``id`` (str),
         ``type`` (``"map"`` or ``"event"``), and ``target_id`` (int).  Goals may
         optionally include ``reward`` (float).
-    map_ids
-        Mapping of map names to their numeric identifiers.  Currently used only
-        for reference.
-    flags
-        Mapping of event flag descriptions to their memory offsets.  Currently
-        used only when ``type`` is ``"event"`` and the target refers to a generic
-        flag rather than badge flags.
 
     Returns
     -------
