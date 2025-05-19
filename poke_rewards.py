@@ -14,6 +14,15 @@ Goal = Dict[str, object]
 
 def _map_changed(prev: bytes, curr: bytes) -> Tuple[bool, int]:
     """Return (changed, current map ID)."""
+    if len(prev) <= MAP_ID_ADDR:
+        raise ValueError(
+            f"prev buffer too small; expected index {MAP_ID_ADDR:#x} accessible, got length {len(prev)}"
+        )
+    if len(curr) <= MAP_ID_ADDR:
+        raise ValueError(
+            f"curr buffer too small; expected index {MAP_ID_ADDR:#x} accessible, got length {len(curr)}"
+        )
+
     prev_id = prev[MAP_ID_ADDR]
     curr_id = curr[MAP_ID_ADDR]
     return (prev_id != curr_id, curr_id)
@@ -21,13 +30,36 @@ def _map_changed(prev: bytes, curr: bytes) -> Tuple[bool, int]:
 
 def _badge_bit_set(prev: bytes, curr: bytes, bit: int) -> bool:
     """Return True if the given badge bit transitioned from 0 to 1."""
+    if len(prev) <= BADGE_FLAGS_ADDR:
+        raise ValueError(
+            f"prev buffer too small; expected index {BADGE_FLAGS_ADDR:#x} accessible, got length {len(prev)}"
+        )
+    if len(curr) <= BADGE_FLAGS_ADDR:
+        raise ValueError(
+            f"curr buffer too small; expected index {BADGE_FLAGS_ADDR:#x} accessible, got length {len(curr)}"
+        )
+
     mask = 1 << bit
     return not (prev[BADGE_FLAGS_ADDR] & mask) and (curr[BADGE_FLAGS_ADDR] & mask)
 
 
 def _event_flag_set(prev: bytes, curr: bytes, flag_index: int) -> bool:
     """Return True if a generic event flag bit transitioned from 0 to 1."""
+    if flag_index < 0:
+        raise ValueError(f"flag_index must be non-negative, got {flag_index}")
+
     byte_offset = EVENT_FLAGS_BASE + flag_index // 8
+    if len(prev) <= byte_offset:
+        raise ValueError(
+            "prev buffer too small for event flag index "
+            f"{flag_index}; expected address {byte_offset:#x} accessible, got length {len(prev)}"
+        )
+    if len(curr) <= byte_offset:
+        raise ValueError(
+            "curr buffer too small for event flag index "
+            f"{flag_index}; expected address {byte_offset:#x} accessible, got length {len(curr)}"
+        )
+
     bit = flag_index % 8
     mask = 1 << bit
     return not (prev[byte_offset] & mask) and (curr[byte_offset] & mask)
