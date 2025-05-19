@@ -5,7 +5,7 @@ from html.parser import HTMLParser
 from typing import Dict, List
 
 
-class EventFlagParser(HTMLParser):
+class EventFlagHTMLParser(HTMLParser):
     """Simple HTML parser to extract event flag information from DataCrystal HTML."""
 
     def __init__(self) -> None:
@@ -67,26 +67,43 @@ def parse_maps(path: str) -> Dict[str, int]:
     return parse_map_constants(path, "MAP_")
 
 
-def parse_event_flags(html_path: str) -> Dict[str, int]:
-    """Parse event flag table from a saved DataCrystal HTML page."""
+def parse_event_flags(path: str) -> Dict[str, int]:
+    """Parse event flag offsets from a saved DataCrystal file.
+
+    The file may be the HTML table (`ram_map.html`) or a text export
+    (`ram_map.txt`). Each entry in the resulting dictionary maps the
+    description text (e.g. ``"Event Flag 123: Some Event"``) to the
+    hex offset.
+    """
+
     flags: Dict[str, int] = {}
-    if not os.path.exists(html_path):
-        print(f"Warning: {html_path} not found. Event flags not extracted.")
+    if not os.path.exists(path):
+        print(f"Warning: {path} not found. Event flags not extracted.")
         return flags
 
-    parser = EventFlagParser()
-    with open(html_path, "r", encoding="utf-8") as f:
-        parser.feed(f.read())
+    if path.endswith(".html"):
+        parser = EventFlagHTMLParser()
+        with open(path, "r", encoding="utf-8") as f:
+            parser.feed(f.read())
 
-    for row in parser.rows:
-        if len(row) >= 3 and row[2].startswith("Event Flag"):
-            try:
-                offset_str = row[0]
-                description = row[2]
-                offset = int(offset_str.strip("$"), 16)
-                flags[description] = offset
-            except ValueError:
-                continue
+        for row in parser.rows:
+            if len(row) >= 3 and row[2].startswith("Event Flag"):
+                try:
+                    offset_str = row[0]
+                    description = row[2]
+                    offset = int(offset_str.strip("$"), 16)
+                    flags[description] = offset
+                except ValueError:
+                    continue
+    else:
+        pattern = re.compile(r"^\s*(?:\$|0x)?([0-9A-Fa-f]{4})\s+(Event Flag.*)")
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                m = pattern.match(line)
+                if m:
+                    offset = int(m.group(1), 16)
+                    description = m.group(2).strip()
+                    flags[description] = offset
     return flags
 
 
@@ -95,7 +112,8 @@ def main() -> None:
 
     map_ids = parse_maps("maps.asm")
     item_ids = parse_items("items.asm")
-    event_flags = parse_event_flags("ram_map.html")
+    # Default to the plain text export from the community disassembly.
+    event_flags = parse_event_flags("ram_map.txt")
 
     with open("data/map_ids.json", "w", encoding="utf-8") as f:
         json.dump(map_ids, f, indent=2)

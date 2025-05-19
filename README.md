@@ -19,7 +19,14 @@ Some parts of the reward system rely on lookup tables for map IDs, item IDs and 
 python scripts/extract_static_data.py
 ```
 
-The script expects `maps.asm`, `items.asm` and `ram_map.html` from the community disassembly project to be placed in the repository root.  It will create the following files under `data/`:
+The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the community disassembly project to be placed in the repository root.  `ram_map.txt` should contain lines like:
+
+```
+$D747 Event Flag 0: Started the game
+$D748 Event Flag 1: Received Pokédex
+```
+
+Each line begins with the flag's address followed by its description.  Running the script will create the following files under `data/`:
 
 - `data/map_ids.json`
 - `data/item_ids.json`
