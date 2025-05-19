@@ -54,8 +54,9 @@ signals even when completed late in the run.
 ## Training
 
 Training uses a small PPO implementation found in `train_agent.py`. The
-environment is wrapped by `RomEnv` from `src/env_interface`, which exposes a
-`retro`-compatible API while handling ROM resets and memory snapshots.
+examples below create the environment directly with Gym Retro. If you have
+your own wrapper for handling ROM resets or memory snapshots, you can adapt the
+code accordingly.
 
 Place your ROM in a directory outside this repository and register it with Gym
 Retro:
@@ -68,12 +69,10 @@ This creates `integrations/PokemonYellow-GB` containing the ROM and metadata.
 To instantiate the environment programmatically:
 
 ```python
-from src.env_interface import RomEnv
 import retro
 
 retro.data.Integrations.add_custom_path("integrations")
-base_env = retro.make(game="PokemonYellow-GB")
-env = RomEnv(base_env)
+env = retro.make(game="PokemonYellow-GB")
 ```
 
 You can then start training with:
