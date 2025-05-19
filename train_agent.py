@@ -12,7 +12,6 @@ import json
 import retro
 import torch
 import torch.optim as optim
-import numpy as np
 
 from ppo import (
     ActorCritic,
