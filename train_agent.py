@@ -202,13 +202,18 @@ def ppo_update(model: ActorCritic, optimizer: optim.Optimizer, rollout: Dict[str
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train a PPO agent on Pokémon Yellow")
-    parser.add_argument("--rom", default="PokemonYellow.gbc", help="Path to the Pokémon Yellow ROM")
+    parser.add_argument(
+        "--retro-dir",
+        default="integrations",
+        help="Path to a Gym Retro integration directory containing Pokemon Yellow",
+    )
     parser.add_argument("--goals", default="data/first_three_gyms.json", help="JSON file describing goal curriculum")
     parser.add_argument("--total-steps", type=int, default=100000, help="Total environment steps to train")
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
     args = parser.parse_args()
 
-    env = retro.make(game=args.rom)
+    retro.data.Integrations.add_custom_path(args.retro_dir)
+    env = retro.make(game="PokemonYellow-GB")
     obs_space_shape = env.observation_space.shape
     obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
     n_actions = env.action_space.n
