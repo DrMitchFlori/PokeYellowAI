@@ -8,6 +8,7 @@ from poke_rewards import (
     _map_changed,
     _badge_bit_set,
     _event_flag_set,
+    check_goals,
 )
 
 
@@ -40,11 +41,9 @@ class Rewarder:
     """Compute shaped rewards from WRAM snapshots."""
 
     def __init__(self, goals: Iterable[GoalDict]):
-        self._entries: List[Tuple[str, Predicate, float]] = []
+        self._goals: List[GoalDict] = []
         for goal in goals:
-            pred = predicate_from_goal(goal)
-            reward = float(goal.get("reward", 1.0))
-            self._entries.append((goal["id"], pred, reward))
+            self._goals.append(goal)
 
     def compute(
         self, prev_mem: bytes, curr_mem: bytes, env_reward: float = 0.0
