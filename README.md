@@ -81,12 +81,13 @@ retro.data.Integrations.add_custom_path("integrations")
 env = retro.make(game="PokemonYellow-GB")
 ```
 
-You can then start training with:
+You can then start training with (use `--seed` for deterministic results):
 
 ```bash
 python train_agent.py --retro-dir integrations \
     --goals data/first_three_gyms.json \
-    --config configs/default.json
+    --config configs/default.json \
+    --seed 42
 ```
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can

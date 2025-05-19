@@ -8,6 +8,7 @@ unlocked gradually using a simple curriculum strategy.
 
 import argparse
 import json
+import random
 
 import retro
 import torch
@@ -39,10 +40,27 @@ def main() -> None:
     )
     parser.add_argument("--total-steps", type=int, default=100000, help="Total environment steps to train")
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducibility",
+    )
     args = parser.parse_args()
 
     retro.data.Integrations.add_custom_path(args.retro_dir)
     env = retro.make(game="PokemonYellow-GB")
+
+    if args.seed is not None:
+        random.seed(args.seed)
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+        if hasattr(torch, "cuda"):
+            torch.cuda.manual_seed_all(args.seed)
+        if hasattr(env.action_space, "seed"):
+            env.action_space.seed(args.seed)
+        if hasattr(env, "seed"):
+            env.seed(args.seed)
     obs_space_shape = env.observation_space.shape
     obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
     n_actions = env.action_space.n
