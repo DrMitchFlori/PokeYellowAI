@@ -13,7 +13,13 @@ def make_mem(map_id: int = 0, badge_flags: int = 0, size: int = 0xE000) -> bytea
 
 class TestPredicateFromGoal(unittest.TestCase):
     def test_map_goal_predicate(self):
-        goal = {"id": "reach_city", "type": "map", "target_id": 1}
+        goal = {
+            "id": "reach_city",
+            "type": "map",
+            "target_id": 1,
+            "reward": 1.0,
+            "prerequisites": [],
+        }
         pred = predicate_from_goal(goal)
         prev = make_mem(map_id=0)
         curr = make_mem(map_id=1)
@@ -22,7 +28,13 @@ class TestPredicateFromGoal(unittest.TestCase):
         self.assertFalse(pred(curr, curr))
 
     def test_event_goal_predicate(self):
-        goal = {"id": "defeat_brock", "type": "event", "target_id": 0}
+        goal = {
+            "id": "defeat_brock",
+            "type": "event",
+            "target_id": 0,
+            "reward": 1.0,
+            "prerequisites": [],
+        }
         pred = predicate_from_goal(goal)
         prev = make_mem(badge_flags=0)
         curr = make_mem(badge_flags=0b00000001)
@@ -33,8 +45,20 @@ class TestPredicateFromGoal(unittest.TestCase):
 class TestRewarderCompute(unittest.TestCase):
     def test_compute_returns_sum_and_ids(self):
         goals = [
-            {"id": "reach_city", "type": "map", "target_id": 1, "reward": 1.0},
-            {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0},
+            {
+                "id": "reach_city",
+                "type": "map",
+                "target_id": 1,
+                "reward": 1.0,
+                "prerequisites": [],
+            },
+            {
+                "id": "defeat_brock",
+                "type": "event",
+                "target_id": 0,
+                "reward": 5.0,
+                "prerequisites": [],
+            },
         ]
         rew = Rewarder(goals)
         prev = make_mem(map_id=0, badge_flags=0)

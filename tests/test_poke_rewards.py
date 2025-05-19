@@ -28,7 +28,13 @@ class TestPokeRewards(unittest.TestCase):
         curr = make_mem(map_id=1)
 
         goals = [
-            {"id": "reach_viridian_city", "type": "map", "target_id": 1, "reward": 1.0}
+            {
+                "id": "reach_viridian_city",
+                "type": "map",
+                "target_id": 1,
+                "reward": 1.0,
+                "prerequisites": [],
+            }
         ]
 
         triggered = check_goals(prev, curr, goals)
@@ -39,7 +45,13 @@ class TestPokeRewards(unittest.TestCase):
         curr = make_mem(badge_flags=0b00000001)
 
         goals = [
-            {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0}
+            {
+                "id": "defeat_brock",
+                "type": "event",
+                "target_id": 0,
+                "reward": 5.0,
+                "prerequisites": [],
+            }
         ]
 
         triggered = check_goals(prev, curr, goals)
@@ -50,8 +62,20 @@ class TestPokeRewards(unittest.TestCase):
         curr = make_mem(map_id=1, badge_flags=0b00000001)
 
         goals = [
-            {"id": "reach_viridian_city", "type": "map", "target_id": 1, "reward": 1.0},
-            {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0},
+            {
+                "id": "reach_viridian_city",
+                "type": "map",
+                "target_id": 1,
+                "reward": 1.0,
+                "prerequisites": [],
+            },
+            {
+                "id": "defeat_brock",
+                "type": "event",
+                "target_id": 0,
+                "reward": 5.0,
+                "prerequisites": [],
+            },
         ]
 
         triggered = check_goals(prev, curr, goals)
@@ -62,8 +86,20 @@ class TestPokeRewards(unittest.TestCase):
         curr = make_mem(map_id=1, badge_flags=0b00000001)
 
         goals = [
-            {"id": "reach_viridian_city", "type": "map", "target_id": 1, "reward": 1.0},
-            {"id": "defeat_brock", "type": "event", "target_id": 0, "reward": 5.0},
+            {
+                "id": "reach_viridian_city",
+                "type": "map",
+                "target_id": 1,
+                "reward": 1.0,
+                "prerequisites": [],
+            },
+            {
+                "id": "defeat_brock",
+                "type": "event",
+                "target_id": 0,
+                "reward": 5.0,
+                "prerequisites": [],
+            },
         ]
 
         triggered = check_goals(prev, curr, goals)

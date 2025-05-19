@@ -2,7 +2,7 @@
 
 from typing import Callable, Iterable, List, Tuple
 
-from types_shared import Goal
+from types_shared import GoalDict
 
 from poke_rewards import (
     _map_changed,
@@ -14,7 +14,7 @@ from poke_rewards import (
 Predicate = Callable[[bytes, bytes], bool]
 
 
-def predicate_from_goal(goal: Goal) -> Predicate:
+def predicate_from_goal(goal: GoalDict) -> Predicate:
     """Create a predicate function for a single goal."""
     gtype = goal.get("type")
     target_id = int(goal.get("target_id", 0))
@@ -40,7 +40,7 @@ def predicate_from_goal(goal: Goal) -> Predicate:
 class Rewarder:
     """Compute shaped rewards from WRAM snapshots."""
 
-    def __init__(self, goals: Iterable[Goal]):
+    def __init__(self, goals: Iterable[GoalDict]):
         self._entries: List[Tuple[str, Predicate, float]] = []
         for goal in goals:
             pred = predicate_from_goal(goal)
