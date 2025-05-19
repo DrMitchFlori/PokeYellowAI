@@ -2,4 +2,3 @@ gym-retro
 numpy
 pyyaml
 torch
-pytest
