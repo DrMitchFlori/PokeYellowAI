@@ -1,0 +1,8 @@
+{
+  "ppo": {
+    "batch_size": 32
+  },
+  "curriculum": {
+    "threshold": 0.5
+  }
+}

@@ -42,7 +42,8 @@ Rewards are produced by comparing consecutive WRAM snapshots.  Goals can trigger
 
 ## Training
 
-Training uses a small PPO implementation found in `train_agent.py`.
+Training uses a small PPO implementation found in `train_agent.py` and
+hyperparameters loaded from a JSON or YAML configuration file.
 
 First register the ROM with Gym Retro using the `retro.import` utility:
 
@@ -54,11 +55,14 @@ This creates `integrations/PokemonYellow-GB` containing the ROM and metadata.
 You can then start training with:
 
 ```bash
-python train_agent.py --retro-dir integrations --goals data/first_three_gyms.json
+python train_agent.py --retro-dir integrations \
+    --goals data/first_three_gyms.json \
+    --config configs/default.json
 ```
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can
-be omitted. You may supply a different goals file using `--goals`. During
-training, goals are unlocked gradually according to their prerequisites, forming
-a simple curriculum.
+be omitted. You may supply a different goals file using `--goals` and a
+different hyperparameter file using `--config`. During training, goals are
+unlocked gradually according to their prerequisites, forming a simple
+curriculum.
 

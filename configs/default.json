@@ -1,0 +1,15 @@
+{
+  "ppo": {
+    "learning_rate": 0.00025,
+    "clip_range": 0.2,
+    "epochs": 4,
+    "batch_size": 64,
+    "gamma": 0.99,
+    "lam": 0.95,
+    "vf_coef": 0.5,
+    "ent_coef": 0.01
+  },
+  "curriculum": {
+    "threshold": 0.8
+  }
+}
