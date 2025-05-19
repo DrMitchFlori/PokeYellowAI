@@ -7,9 +7,8 @@ PokeYellowAI aims to train reinforcement learning agents to play **Pokémon Yell
 - Python 3.8 or newer
 - [gym-retro](https://github.com/openai/retro)
 - [PyTorch](https://pytorch.org/)
-- A legally obtained copy of *Pokémon Yellow* (`PokemonYellow.gbc`)
-
-The bundled ROM is provided only for research convenience.  Ensure you own an original copy of the game before using it.
+- A legally obtained copy of *Pokémon Yellow* placed outside this repository
+This repository does not include the game ROM.
 
 ## Extracting Static Data
 
@@ -44,10 +43,10 @@ Rewards are produced by comparing consecutive WRAM snapshots.  Goals can trigger
 
 Training uses a small PPO implementation found in `train_agent.py`.
 
-First register the ROM with Gym Retro using the `retro.import` utility:
+Place your ROM in a directory outside this repository and register it with Gym Retro:
 
 ```bash
-python -m retro.import PokemonYellow.gbc --output integrations
+python -m retro.import /path/to/PokemonYellow.gbc --output integrations
 ```
 
 This creates `integrations/PokemonYellow-GB` containing the ROM and metadata.
