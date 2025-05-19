@@ -175,7 +175,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
         action, log_p, value = model.act(obs)
         next_obs, reward, done, _info = env.step(action)
         curr_mem = env.get_ram()
-        triggered = check_goals(prev_mem, curr_mem, curriculum.active_goals(), {}, {})
+        triggered = check_goals(prev_mem, curr_mem, curriculum.active_goals())
         shaped = reward + sum(r for _g, r in triggered)
         episode_goals.update(g for g, _r in triggered)
 
