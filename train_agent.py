@@ -153,14 +153,14 @@ def gather_rollout(env: retro.RetroEnv, model: ActorCritic, curriculum: Curricul
         storage["rewards"].append(shaped)
         storage["dones"].append(done)
 
-        obs = next_obs
-        prev_mem = curr_mem
-
         if done:
-            env.reset()
+            obs = env.reset()
             prev_mem = env.get_ram()
             curriculum.record_episode(episode_goals)
             episode_goals = set()
+        else:
+            obs = next_obs
+            prev_mem = curr_mem
 
     return storage
 
