@@ -1,1 +1,3 @@
 *.gbc
+__pycache__/
+*.py[cod]
