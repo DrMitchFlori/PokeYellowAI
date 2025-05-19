@@ -1,0 +1,51 @@
+[
+  {
+    "id": "reach_viridian_city",
+    "type": "map",
+    "target_id": 1,
+    "description": "Enter Viridian City for the first time.",
+    "prerequisites": []
+  },
+  {
+    "id": "reach_pewter_city",
+    "type": "map",
+    "target_id": 2,
+    "description": "Arrive at Pewter City.",
+    "prerequisites": ["reach_viridian_city"]
+  },
+  {
+    "id": "defeat_brock",
+    "type": "event",
+    "target_id": 0,
+    "description": "Defeat Brock in the Pewter Gym (Boulder Badge).",
+    "prerequisites": ["reach_pewter_city"]
+  },
+  {
+    "id": "reach_cerulean_city",
+    "type": "map",
+    "target_id": 3,
+    "description": "Arrive at Cerulean City.",
+    "prerequisites": ["defeat_brock"]
+  },
+  {
+    "id": "defeat_misty",
+    "type": "event",
+    "target_id": 1,
+    "description": "Defeat Misty in the Cerulean Gym (Cascade Badge).",
+    "prerequisites": ["reach_cerulean_city"]
+  },
+  {
+    "id": "reach_vermilion_city",
+    "type": "map",
+    "target_id": 5,
+    "description": "Arrive at Vermilion City.",
+    "prerequisites": ["defeat_misty"]
+  },
+  {
+    "id": "defeat_lt_surge",
+    "type": "event",
+    "target_id": 2,
+    "description": "Defeat Lt. Surge in the Vermilion Gym (Thunder Badge).",
+    "prerequisites": ["reach_vermilion_city"]
+  }
+]
