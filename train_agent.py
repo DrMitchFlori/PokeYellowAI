@@ -13,6 +13,7 @@ import random
 import retro
 import torch
 import torch.optim as optim
+import numpy as np
 
 from ppo import (
     ActorCritic,
@@ -39,6 +40,11 @@ def main() -> None:
     )
     parser.add_argument("--total-steps", type=int, default=100000, help="Total environment steps to train")
     parser.add_argument("--rollout-steps", type=int, default=2048, help="Number of steps per PPO rollout")
+    parser.add_argument(
+        "--output-model",
+        default="ppo_pokemon_yellow.pt",
+        help="Path to save the trained model",
+    )
     parser.add_argument(
         "--seed",
         type=int,
