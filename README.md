@@ -23,7 +23,11 @@ Some parts of the reward system rely on lookup tables for map IDs, item IDs and 
 python scripts/extract_static_data.py
 ```
 
-The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the community disassembly project to be placed in the repository root.  `ram_map.txt` should contain lines like:
+The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the
+[Pokémon Yellow disassembly](https://github.com/pret/pokeyellow) project to
+be placed in the repository root. These names reflect the directory layout of
+recent versions of the disassembly—if you use an older revision you may need
+to adjust the paths accordingly. `ram_map.txt` should contain lines like:
 
 ```
 $D747 Event Flag 0: Started the game
