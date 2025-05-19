@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Sequence, Tuple, Set
+from typing import Any, Dict, Iterable, List, Sequence, Tuple, Set, Union
 
 from types_shared import GoalDict
 
@@ -119,8 +119,11 @@ if torch is not None and np is not None:
         def act(self, x: np.ndarray) -> Tuple[int, float, float]:
             """Return action, log probability and value for a single observation."""
             x = x.transpose(2, 0, 1)
+            device = next(self.parameters()).device
             with torch.no_grad():
-                logits, value = self.forward(torch.from_numpy(x).float().unsqueeze(0))
+                logits, value = self.forward(
+                    torch.from_numpy(x).float().unsqueeze(0).to(device)
+                )
                 dist = torch.distributions.Categorical(logits=logits)
                 action = dist.sample()
                 log_prob = dist.log_prob(action)
@@ -183,7 +186,14 @@ def compute_gae(
     return advantages_t, returns_t
 
 
-def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout_steps: int) -> Dict[str, List]:
+def gather_rollout(
+    env: Any,
+    model: ActorCritic,
+    curriculum: Curriculum,
+    rollout_steps: int,
+    *,
+    device: Union[str, torch.device] = "cpu",
+) -> Dict[str, List]:
     """Collect a batch of environment transitions for PPO training.
 
     Parameters
@@ -205,6 +215,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
     """
     if np is None or torch is None:
         raise ImportError("NumPy and PyTorch are required for gather_rollout")
+    device_t = torch.device(device)
     obs = env.reset()
     prev_mem = env.get_ram()
     storage = defaultdict(list)
@@ -220,7 +231,7 @@ def gather_rollout(env: Any, model: ActorCritic, curriculum: Curriculum, rollout
         episode_goals.update(g for g, _r in triggered)
 
         obs_t = obs.transpose(2, 0, 1)
-        storage["states"].append(torch.from_numpy(obs_t).float())
+        storage["states"].append(torch.from_numpy(obs_t).float().to(device_t))
         storage["actions"].append(action)
         storage["log_probs"].append(log_p)
         storage["values"].append(value)
@@ -252,18 +263,22 @@ def ppo_update(
     ent_coef: float = 0.01,
     gamma: float = 0.99,
     lam: float = 0.95,
+    device: Union[str, torch.device] = "cpu",
 ) -> None:
     if torch is None:
         raise ImportError("PyTorch is required for ppo_update")
-    states = torch.stack(rollout["states"])
-    actions = torch.tensor(rollout["actions"])
-    old_log_probs = torch.tensor(rollout["log_probs"])
+    device_t = torch.device(device)
+    states = torch.stack(rollout["states"]).to(device_t)
+    actions = torch.tensor(rollout["actions"], device=device_t)
+    old_log_probs = torch.tensor(rollout["log_probs"], device=device_t)
     values = rollout["values"]
     rewards = rollout["rewards"]
     dones = rollout["dones"]
 
     advantages, returns = compute_gae(rewards, values, dones, gamma, lam)
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+    advantages = advantages.to(device_t)
+    returns = returns.to(device_t)
 
     dataset_size = states.size(0)
     for _ in range(epochs):

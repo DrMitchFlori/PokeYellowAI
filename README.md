@@ -23,7 +23,11 @@ Some parts of the reward system rely on lookup tables for map IDs, item IDs and 
 python scripts/extract_static_data.py
 ```
 
-The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the community disassembly project to be placed in the repository root.  `ram_map.txt` should contain lines like:
+The script expects `maps.asm`, `items.asm` and `ram_map.txt` from the
+[Pokémon Yellow disassembly](https://github.com/pret/pokeyellow) project to
+be placed in the repository root. These names reflect the directory layout of
+recent versions of the disassembly—if you use an older revision you may need
+to adjust the paths accordingly. `ram_map.txt` should contain lines like:
 
 ```
 $D747 Event Flag 0: Started the game
@@ -86,7 +90,8 @@ You can then start training with (use `--seed` for deterministic results):
 python train_agent.py --retro-dir integrations\
     --goals data/first_three_gyms.json\
     --config configs/default.json\
-    --seed 42
+    --seed 42\
+    --device cuda
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can
 be omitted. You may supply a different goals file using `--goals` and a
@@ -95,6 +100,8 @@ are saved to `ppo_pokemon_yellow.pt` by default.  Use `--output-model` to
 specify a different path. During training, goals are
 unlocked gradually according to their prerequisites, forming a simple
 curriculum.
+
+Use `--device` to select the PyTorch device for training. The default is `'cpu'`.
 
 
 ## Running Tests

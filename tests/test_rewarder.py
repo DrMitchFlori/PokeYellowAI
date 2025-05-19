@@ -1,6 +1,6 @@
 import unittest
 
-from rewarder import predicate_from_goal, Rewarder
+from rewarder import Rewarder
 from poke_rewards import MAP_ID_ADDR, BADGE_FLAGS_ADDR
 
 
@@ -9,7 +9,6 @@ def make_mem(map_id: int = 0, badge_flags: int = 0, size: int = 0xE000) -> bytea
     mem[MAP_ID_ADDR] = map_id
     mem[BADGE_FLAGS_ADDR] = badge_flags
     return mem
-
 
 class TestPredicateFromGoal(unittest.TestCase):
     def test_map_goal_predicate(self):
@@ -40,7 +39,6 @@ class TestPredicateFromGoal(unittest.TestCase):
         curr = make_mem(badge_flags=0b00000001)
         self.assertTrue(pred(prev, curr))
         self.assertFalse(pred(curr, curr))
-
 
 class TestRewarderCompute(unittest.TestCase):
     def test_compute_returns_sum_and_ids(self):

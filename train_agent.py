@@ -61,6 +61,11 @@ def main() -> None:
         default=None,
         help="Optional path to log map IDs during training",
     )
+    parser.add_argument(
+        "--device",
+        default="cpu",
+        help="PyTorch device to use for training (e.g. 'cpu' or 'cuda')",
+    )
     args = parser.parse_args()
 
     retro.data.Integrations.add_custom_path(args.retro_dir)
@@ -86,7 +91,8 @@ def main() -> None:
         goal_data = json.load(f)
     curriculum = Curriculum(goal_data, threshold=config.get("curriculum", {}).get("threshold", 0.8))
 
-    model = ActorCritic(obs_shape, n_actions)
+    device = torch.device(args.device)
+    model = ActorCritic(obs_shape, n_actions).to(device)
     ppo_cfg = config.get("ppo", {})
     optimizer = optim.Adam(model.parameters(), lr=ppo_cfg.get("learning_rate", 2.5e-4))
 
@@ -102,7 +108,7 @@ def main() -> None:
     global_step = 0
     log_f = open(args.log_path, "w") if args.log_path else None
     while steps < args.total_steps:
-        rollout = gather_rollout(env, model, curriculum, args.rollout_steps)
+        rollout = gather_rollout(env, model, curriculum, args.rollout_steps, device=device)
         if log_f:
             for mid in rollout.get("map_ids", []):
                 log_f.write(f"{global_step}\t{mid}\n")
@@ -119,6 +125,7 @@ def main() -> None:
             ent_coef=ent_coef,
             gamma=gamma,
             lam=lam,
+            device=device,
         )
         logger.info(
             "Steps: %s | Active goals: %s",
