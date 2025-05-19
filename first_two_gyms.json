@@ -1,0 +1,16 @@
+{
+  "goals": [
+    {
+      "description": "Reach Pewter Gym (Brock)",
+      "predicates": [
+        {"address": "0xD35D", "equals": 1}
+      ]
+    },
+    {
+      "description": "Reach Cerulean Gym (Misty)",
+      "predicates": [
+        {"address": "0xD355", "equals": 2}
+      ]
+    }
+  ]
+}
