@@ -1,8 +1,11 @@
 import json
+import logging
 import os
 import re
 from html.parser import HTMLParser
 from typing import Dict, List
+
+logger = logging.getLogger(__name__)
 
 
 class EventFlagHTMLParser(HTMLParser):
@@ -45,7 +48,7 @@ def parse_map_constants(path: str, prefix: str) -> Dict[str, int]:
     """Parse assembly constant definitions starting with a given prefix."""
     constants: Dict[str, int] = {}
     if not os.path.exists(path):
-        print(f"Warning: {path} not found. Skipping.")
+        logger.warning("%s not found. Skipping.", path)
         return constants
 
     pattern = re.compile(rf"^\s*{prefix}([A-Z0-9_]+)\s+EQU\s+\$?([0-9A-Fa-f]+)")
@@ -78,7 +81,7 @@ def parse_event_flags(path: str) -> Dict[str, int]:
 
     flags: Dict[str, int] = {}
     if not os.path.exists(path):
-        print(f"Warning: {path} not found. Event flags not extracted.")
+        logger.warning("%s not found. Event flags not extracted.", path)
         return flags
 
     if path.endswith(".html"):
@@ -108,6 +111,7 @@ def parse_event_flags(path: str) -> Dict[str, int]:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
     os.makedirs("data", exist_ok=True)
 
     map_ids = parse_maps("maps.asm")

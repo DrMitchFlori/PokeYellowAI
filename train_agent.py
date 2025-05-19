@@ -8,6 +8,7 @@ unlocked gradually using a simple curriculum strategy.
 
 import argparse
 import json
+import logging
 import random
 
 import retro
@@ -24,8 +25,12 @@ from ppo import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description="Train a PPO agent on Pokémon Yellow")
     parser.add_argument(
         "--retro-dir",
@@ -104,7 +109,11 @@ def main() -> None:
             gamma=gamma,
             lam=lam,
         )
-        print(f"Steps: {steps} | Active goals: {len(curriculum.active_goals())}")
+        logger.info(
+            "Steps: %s | Active goals: %s",
+            steps,
+            len(curriculum.active_goals()),
+        )
 
     env.close()
     torch.save(model.state_dict(), args.output_model)
