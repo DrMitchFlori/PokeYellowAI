@@ -90,7 +90,8 @@ You can then start training with (use `--seed` for deterministic results):
 python train_agent.py --retro-dir integrations\
     --goals data/first_three_gyms.json\
     --config configs/default.json\
-    --seed 42
+    --seed 42\
+    --device cuda
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can
 be omitted. You may supply a different goals file using `--goals` and a
@@ -99,6 +100,8 @@ are saved to `ppo_pokemon_yellow.pt` by default.  Use `--output-model` to
 specify a different path. During training, goals are
 unlocked gradually according to their prerequisites, forming a simple
 curriculum.
+
+Use `--device` to select the PyTorch device for training. The default is `'cpu'`.
 
 
 ## Running Tests
