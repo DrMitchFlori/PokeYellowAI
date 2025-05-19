@@ -1,6 +1,14 @@
 import unittest
 
-from poke_rewards import check_goals, MAP_ID_ADDR, BADGE_FLAGS_ADDR
+from poke_rewards import (
+    check_goals,
+    MAP_ID_ADDR,
+    BADGE_FLAGS_ADDR,
+    EVENT_FLAGS_BASE,
+    _map_changed,
+    _badge_bit_set,
+    _event_flag_set,
+)
 
 
 def make_mem(map_id: int = 0, badge_flags: int = 0, size: int = 0xE000) -> bytearray:
@@ -63,6 +71,29 @@ class TestPokeRewards(unittest.TestCase):
             ("defeat_brock", 5.0),
             ("reach_viridian_city", 1.0),
         ])
+
+    def test_map_changed_short_buffer(self):
+        prev = bytearray(MAP_ID_ADDR)
+        curr = bytearray(MAP_ID_ADDR + 1)
+        with self.assertRaises(ValueError) as ctx:
+            _map_changed(prev, curr)
+        self.assertIn("too small", str(ctx.exception))
+
+    def test_badge_bit_set_short_buffer(self):
+        prev = bytearray(BADGE_FLAGS_ADDR)
+        curr = bytearray(BADGE_FLAGS_ADDR)
+        with self.assertRaises(ValueError) as ctx:
+            _badge_bit_set(prev, curr, 0)
+        self.assertIn("too small", str(ctx.exception))
+
+    def test_event_flag_set_short_buffer(self):
+        flag_index = 0
+        offset = EVENT_FLAGS_BASE + flag_index // 8
+        prev = bytearray(offset)
+        curr = bytearray(offset)
+        with self.assertRaises(ValueError) as ctx:
+            _event_flag_set(prev, curr, flag_index)
+        self.assertIn("too small", str(ctx.exception))
 
 
 if __name__ == "__main__":
