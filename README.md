@@ -92,6 +92,7 @@ python train_agent.py --retro-dir integrations\
     --config configs/default.json\
     --seed 42\
     --device cuda
+```
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can
 be omitted. You may supply a different goals file using `--goals` and a
