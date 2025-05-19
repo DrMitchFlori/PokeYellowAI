@@ -39,17 +39,36 @@ Rewards are produced by comparing consecutive WRAM snapshots.  Goals can trigger
 
 `poke_rewards.check_goals` takes two memory snapshots and returns the goals that were achieved in that frame.
 
+Additional goal predicates are now available for item pickups and scripted events,
+enabling more fine-grained progress tracking. A cumulative rewarder component
+aggregates rewards over an episode so long-term goals still provide shaping
+signals even when completed late in the run.
+
 ## Training
 
-Training uses a small PPO implementation found in `train_agent.py`.
+Training uses a small PPO implementation found in `train_agent.py`. The
+environment is wrapped by `RomEnv` from `src/env_interface`, which exposes a
+`retro`-compatible API while handling ROM resets and memory snapshots.
 
-Place your ROM in a directory outside this repository and register it with Gym Retro:
+Place your ROM in a directory outside this repository and register it with Gym
+Retro:
 
 ```bash
 python -m retro.import /path/to/PokemonYellow.gbc --output integrations
 ```
 
 This creates `integrations/PokemonYellow-GB` containing the ROM and metadata.
+To instantiate the environment programmatically:
+
+```python
+from src.env_interface import RomEnv
+import retro
+
+retro.data.Integrations.add_custom_path("integrations")
+base_env = retro.make(game="PokemonYellow-GB")
+env = RomEnv(base_env)
+```
+
 You can then start training with:
 
 ```bash
