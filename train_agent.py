@@ -13,7 +13,6 @@ import random
 import retro
 import torch
 import torch.optim as optim
-import numpy as np
 
 from ppo import (
     ActorCritic,
@@ -102,7 +101,7 @@ def main() -> None:
         print(f"Steps: {steps} | Active goals: {len(curriculum.active_goals())}")
 
     env.close()
-    torch.save(model.state_dict(), "ppo_pokemon_yellow.pt")
+    torch.save(model.state_dict(), args.output_model)
 
 
 if __name__ == "__main__":

@@ -88,11 +88,12 @@ python train_agent.py --retro-dir integrations \
     --goals data/first_three_gyms.json \
     --config configs/default.json \
     --seed 42
-```
 
 If you already imported the ROM into `~/.retro`, the `--retro-dir` argument can
 be omitted. You may supply a different goals file using `--goals` and a
-different hyperparameter file using `--config`. During training, goals are
+different hyperparameter file using `--config`. The resulting network weights
+are saved to `ppo_pokemon_yellow.pt` by default.  Use `--output-model` to
+specify a different path. During training, goals are
 unlocked gradually according to their prerequisites, forming a simple
 curriculum.
 
