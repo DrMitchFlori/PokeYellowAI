@@ -44,6 +44,22 @@ class TestRolloutShapes(unittest.TestCase):
         self.assertEqual(len(rollout["states"]), 1)
         self.assertEqual(rollout["states"][0].shape, torch.Size(obs_shape))
 
+    def test_obs_reset_after_done(self):
+        """New observation from env.reset() should be used after episode end."""
+        env = DummyEnv()
+        obs_space_shape = env.observation_space.shape
+        obs_shape = (obs_space_shape[2], obs_space_shape[0], obs_space_shape[1])
+        model = ActorCritic(obs_shape, env.action_space.n)
+        curriculum = Curriculum([])
+
+        rollout = gather_rollout(env, model, curriculum, rollout_steps=2)
+        self.assertEqual(len(rollout["states"]), 2)
+        first_state = rollout["states"][0].numpy()
+        second_state = rollout["states"][1].numpy()
+
+        self.assertTrue(np.all(first_state == 0))
+        self.assertTrue(np.all(second_state == 0))
+
 
 if __name__ == "__main__":
     unittest.main()
