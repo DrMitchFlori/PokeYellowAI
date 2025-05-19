@@ -3,7 +3,8 @@
 from typing import Dict, Iterable, List, Tuple
 
 # Memory addresses based on community documentation
-MAP_ID_ADDR = 0xD35E
+# Address of the current map ID within WRAM
+MAP_ID_ADDR = 0xD35D
 BADGE_FLAGS_ADDR = 0xD356
 EVENT_FLAGS_BASE = 0xD747
 
