@@ -12,6 +12,8 @@ import json
 from collections import defaultdict
 from typing import Any, Dict, Iterable, List, Sequence, Tuple
 
+from types_shared import Goal
+
 try:
     import yaml  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
@@ -31,8 +33,6 @@ except ModuleNotFoundError:  # pragma: no cover - modules may be missing during 
     optim = None
 
 from poke_rewards import check_goals
-
-Goal = Dict[str, object]
 
 
 def load_config(path: str) -> Dict[str, Any]:

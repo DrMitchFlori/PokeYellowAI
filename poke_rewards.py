@@ -1,15 +1,14 @@
 """Reward detection utilities for Pokémon Yellow WRAM snapshots."""
 
-from typing import Dict, Iterable, List, Tuple
+from typing import Iterable, List, Tuple
+
+from types_shared import Goal
 
 # Memory addresses based on community documentation
 # Address of the current map ID within WRAM
 MAP_ID_ADDR = 0xD35D
 BADGE_FLAGS_ADDR = 0xD356
 EVENT_FLAGS_BASE = 0xD747
-
-
-Goal = Dict[str, object]
 
 
 def _map_changed(prev: bytes, curr: bytes) -> Tuple[bool, int]:

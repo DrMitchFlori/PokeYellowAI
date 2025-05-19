@@ -1,6 +1,8 @@
 """Goal-based reward computation utilities."""
 
-from typing import Callable, Dict, Iterable, List, Tuple
+from typing import Callable, Iterable, List, Tuple
+
+from types_shared import Goal
 
 from poke_rewards import (
     _map_changed,
@@ -9,8 +11,6 @@ from poke_rewards import (
 )
 
 
-
-Goal = Dict[str, object]
 Predicate = Callable[[bytes, bytes], bool]
 
 
