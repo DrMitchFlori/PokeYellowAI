@@ -42,6 +42,7 @@ class TestRolloutShapes(unittest.TestCase):
         rollout = gather_rollout(env, model, curriculum, rollout_steps=1)
         self.assertEqual(len(rollout["states"]), 1)
         self.assertEqual(rollout["states"][0].shape, torch.Size(obs_shape))
+        self.assertEqual(len(rollout["map_ids"]), 1)
 
     def test_obs_reset_after_done(self):
         """New observation from env.reset() should be used after episode end."""
@@ -55,6 +56,8 @@ class TestRolloutShapes(unittest.TestCase):
         self.assertEqual(len(rollout["states"]), 2)
         first_state = rollout["states"][0].numpy()
         second_state = rollout["states"][1].numpy()
+
+        self.assertEqual(len(rollout["map_ids"]), 2)
 
         self.assertTrue(np.all(first_state == 0))
         self.assertTrue(np.all(second_state == 0))

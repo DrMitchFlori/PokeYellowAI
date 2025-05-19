@@ -2,3 +2,4 @@ gym-retro
 numpy
 pyyaml
 torch
+matplotlib
