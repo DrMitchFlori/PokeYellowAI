@@ -5,6 +5,7 @@ from typing import Iterable, List, Tuple, Callable
 from types_shared import GoalDict
 
 from poke_rewards import (
+    check_goals,
     _map_changed,
     _badge_bit_set,
     _event_flag_set,
@@ -41,9 +42,7 @@ class Rewarder:
     """Compute shaped rewards from WRAM snapshots."""
 
     def __init__(self, goals: Iterable[GoalDict]):
-        self._goals: List[GoalDict] = []
-        for goal in goals:
-            self._goals.append(goal)
+        self._goals = list(goals)
 
     def compute(
         self, prev_mem: bytes, curr_mem: bytes, env_reward: float = 0.0

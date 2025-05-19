@@ -1,5 +1,6 @@
-from rewarder import Rewarder
-from rewarder import predicate_from_goal
+import unittest
+
+from rewarder import Rewarder, predicate_from_goal
 
 from poke_rewards import MAP_ID_ADDR, BADGE_FLAGS_ADDR
 
@@ -64,6 +65,18 @@ class TestRewarderCompute(unittest.TestCase):
         total, triggered = rew.compute(prev, curr, env_reward=0.5)
         self.assertAlmostEqual(total, 6.5)
         self.assertEqual(set(triggered), {"reach_city", "defeat_brock"})
+
+    def test_compute_with_defaults(self):
+        """Rewarder should handle goals missing optional fields."""
+        goals = [
+            {"id": "reach_city", "type": "map", "target_id": 1},
+        ]
+        rew = Rewarder(goals)
+        prev = make_mem(map_id=0)
+        curr = make_mem(map_id=1)
+        total, triggered = rew.compute(prev, curr)
+        self.assertAlmostEqual(total, 1.0)
+        self.assertEqual(triggered, ["reach_city"])
 
 
 if __name__ == "__main__":

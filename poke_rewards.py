@@ -77,8 +77,8 @@ def check_goals(
         Consecutive WRAM snapshots as ``bytes`` or ``bytearray`` objects.
     goals
         Iterable of goal dictionaries. Each goal must contain ``id`` (str),
-        ``type`` (``"map"`` or ``"event"``), ``target_id`` (int), ``reward``
-        (float) and ``prerequisites`` (list of str).
+        ``type`` (``"map"`` or ``"event"``) and ``target_id`` (int). Optional
+        ``reward`` values and ``prerequisites`` lists may be provided.
 
     Returns
     -------
