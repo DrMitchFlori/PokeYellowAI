@@ -16,7 +16,7 @@ from types_shared import GoalDict
 
 try:
     import yaml  # type: ignore
-except Exception:  # pragma: no cover - optional dependency
+except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
 try:  # Optional heavy deps
